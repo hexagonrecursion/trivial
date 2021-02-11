@@ -6,13 +6,19 @@ jobs:
   check_news_file:
     runs-on: ubuntu-20.04
     steps:
-      - run: sudo apt-get install -y patchutils curl grep
-      - run: cat "$GITHUB_EVENT_PATH"
-      - if: ${{ !contains(github.event.pull_request.labels.*.name, 'trivial') }}
-        env:
-          DIFF_URL: ${{ github.event.pull_request.diff_url }}
+      - run: sudo apt-get install -y patchutils curl grep jq
+      - name: Check if PR contains a news fragment or has trivial label
         run: |
-          curl -L "$DIFF_URL"
-          curl -L "$DIFF_URL" | lsdiff
-          echo "::error::Missing trivial label"
-          false
+          set -x
+          if jq --exit-status '.pull_request.labels | any(.[].name; . == "trivial")' "$GITHUB_EVENT_PATH"; then
+            echo TRIVIAL LABEL
+          else
+            DIFF_URL="$(jq '.pull_request.diff_url' "$GITHUB_EVENT_PATH")"
+            NEWS_FRAGMENT_RE='news/[^\./]+\.(process|removal|feature|bugfix|doc|vendor|trivial)\.rst$'
+            if curl -L "$DIFF_URL" | lsdiff | grep -E "$NEWS_FRAGMENT_RE"; then
+              echo NEWS FRAGMENT
+            else
+              echo "::error::Missing news fragment or trivial label"
+              false
+            fi
+          fi
