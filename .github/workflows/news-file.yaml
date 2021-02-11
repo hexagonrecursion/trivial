@@ -11,7 +11,7 @@ jobs:
         run: |
           echo '::group::Event payload'
           jq . "$GITHUB_EVENT_PATH"
-          ::endgroup::
+          echo '::endgroup::'
           if jq --exit-status '.pull_request.labels | any(.[].name; . == "trivial")' "$GITHUB_EVENT_PATH"; then
             echo TRIVIAL LABEL
           else
