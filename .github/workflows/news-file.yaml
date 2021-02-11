@@ -19,6 +19,10 @@ jobs:
             DIFF_URL="$(jq --raw-output '.pull_request.diff_url' "$GITHUB_EVENT_PATH")"
             NEWS_FRAGMENT_RE='news/[^\./]+\.(process|removal|feature|bugfix|doc|vendor|trivial)\.rst$'
             printf '.pull_request.diff_url: %s\n' "$DIFF_URL"
+            # XXX: DEBUG
+            curl -L "$DIFF_URL" > diff.txt
+            lsdiff diff.txt
+            
             if curl -L "$DIFF_URL" | lsdiff | grep -E "$NEWS_FRAGMENT_RE"; then
               echo NEWS FRAGMENT
             else
