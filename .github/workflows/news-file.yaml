@@ -6,4 +6,5 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - run: |
-          cat "$GITHUB_EVENT_PATH"
+          sudo apt -y install jq
+          jq '.pull_request.labels' "$GITHUB_EVENT_PATH"
