@@ -18,10 +18,6 @@ jobs:
           else
             PR_URL="$(jq --raw-output '.pull_request.url' "$GITHUB_EVENT_PATH")"
             NEWS_FRAGMENT_RE='news/[^\./]+\.(process|removal|feature|bugfix|doc|vendor|trivial)\.rst$'
-            # XXX: debug
-            curl -L "$PR_URL/files"
-            curl -L "$PR_URL/files" | jq --raw-output '.[].filename'
-            curl -L "$PR_URL/files" | jq --raw-output '.[].filename' | grep -E "$NEWS_FRAGMENT_RE"
             if curl -L "$PR_URL/files" | jq --raw-output '.[].filename' | grep -E "$NEWS_FRAGMENT_RE" > /dev/null; then
               echo NEWS FRAGMENT
             else
