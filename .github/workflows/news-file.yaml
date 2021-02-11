@@ -5,6 +5,5 @@ jobs:
   check_news_file:
     runs-on: ubuntu-20.04
     steps:
-      - run: |
-          sudo apt-get -y install jq
-          jq '.pull_request.labels | .[].name' "$GITHUB_EVENT_PATH"
+      - if: ${{ !contains(github.event.pull_request.labels.*.name, 'bug') }}
+        run: 'false'
