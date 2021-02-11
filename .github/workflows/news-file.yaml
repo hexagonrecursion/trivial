@@ -18,11 +18,17 @@ jobs:
             echo TRIVIAL LABEL
           else
             PR_URL="$(jq --raw-output '.pull_request.url' "$GITHUB_EVENT_PATH")"
+            STATUSES_URL="$(jq --raw-output '.pull_request.statuses_url' "$GITHUB_EVENT_PATH")"
+            printf 'PR_URL: %s\nSTATUSES_URL: %s\n' "$PR_URL" "$STATUSES_URL"
+            echo "::group::GET $PR_URL/files"
+              curl -L -H 'Accept: application/vnd.github.v3+json' "$PR_URL/files" 2>&1 >files.json
+              jq . files.json
+            echo '::endgroup::'
             NEWS_FRAGMENT_RE='news/[^\./]+\.(process|removal|feature|bugfix|doc|vendor|trivial)\.rst$'
-            if curl -L "$PR_URL/files" | jq --raw-output '.[].filename' | grep -E "$NEWS_FRAGMENT_RE" > /dev/null; then
+            if jq --raw-output '.[].filename' files.json | grep -E "$NEWS_FRAGMENT_RE" > /dev/null; then
               echo NEWS FRAGMENT
             else
-              echo '::error::Missing news fragment or trivial label'
-              false
+              # echo '::error::Missing news fragment or trivial label'
+              echo MISSING
             fi
           fi
