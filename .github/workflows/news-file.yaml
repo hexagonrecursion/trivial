@@ -6,7 +6,7 @@ jobs:
   pr:
     runs-on: ubuntu-20.04
     steps:
-      - run: sudo apt-get install -y patchutils curl grep jq
+      - run: sudo apt-get install -y curl grep jq
       - name: Check if PR contains a news fragment or has trivial label
         run: |
           set -euo pipefail
@@ -16,14 +16,13 @@ jobs:
           if jq --exit-status '.pull_request.labels | any(.[].name; . == "trivial")' "$GITHUB_EVENT_PATH" > /dev/null; then
             echo TRIVIAL LABEL
           else
-            DIFF_URL="$(jq --raw-output '.pull_request.diff_url' "$GITHUB_EVENT_PATH")"
+            PR_URL="$(jq --raw-output '.pull_request.url' "$GITHUB_EVENT_PATH")"
             NEWS_FRAGMENT_RE='news/[^\./]+\.(process|removal|feature|bugfix|doc|vendor|trivial)\.rst$'
-            printf '.pull_request.diff_url: %s\n' "$DIFF_URL"
-            # XXX: DEBUG
-            curl -L "$DIFF_URL" > diff.txt
-            lsdiff diff.txt
-            
-            if curl -L "$DIFF_URL" | lsdiff | grep -E "$NEWS_FRAGMENT_RE"; then
+            # XXX: debug
+            curl -L "$PR_URL/files"
+            curl -L "$PR_URL/files" | jq --raw-output '.[].filename'
+            curl -L "$PR_URL/files" | jq --raw-output '.[].filename' | grep -E "$NEWS_FRAGMENT_RE"
+            if curl -L "$PR_URL/files" | jq --raw-output '.[].filename' | grep -E "$NEWS_FRAGMENT_RE" > /dev/null; then
               echo NEWS FRAGMENT
             else
               echo '::error::Missing news fragment or trivial label'
