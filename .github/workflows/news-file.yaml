@@ -1,9 +1,9 @@
-name: check news file
+name: news-file
 on:
   pull_request:
     types: [labeled, unlabeled, opened, reopened, synchronize]
 jobs:
-  check_news_file:
+  pr:
     runs-on: ubuntu-20.04
     steps:
       - run: sudo apt-get install -y patchutils curl grep jq
