@@ -7,4 +7,6 @@ jobs:
     steps:
       - run: cat "$GITHUB_EVENT_PATH"
       - if: ${{ !contains(github.event.pull_request.labels.*.name, 'trivial') }}
-        run: 'false'
+        run: |
+          echo "::error::Missing trivial label"
+          false
