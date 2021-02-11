@@ -7,4 +7,4 @@ jobs:
     steps:
       - run: |
           sudo apt-get -y install jq
-          jq '.pull_request.labels' "$GITHUB_EVENT_PATH"
+          jq '.pull_request.labels | .[].name' "$GITHUB_EVENT_PATH"
