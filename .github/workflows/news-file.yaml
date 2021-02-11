@@ -10,7 +10,7 @@ jobs:
       - name: Check if PR contains a news fragment or has trivial label
         run: |
           echo '::group::Event payload'
-          jq . "$GITHUB_EVENT_PATH"
+            jq . "$GITHUB_EVENT_PATH"
           echo '::endgroup::'
           if jq --exit-status '.pull_request.labels | any(.[].name; . == "trivial")' "$GITHUB_EVENT_PATH"; then
             echo TRIVIAL LABEL
