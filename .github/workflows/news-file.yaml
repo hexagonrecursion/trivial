@@ -5,5 +5,6 @@ jobs:
   check_news_file:
     runs-on: ubuntu-20.04
     steps:
+      - run: cat "$GITHUB_EVENT_PATH"
       - if: ${{ !contains(github.event.pull_request.labels.*.name, 'bug') }}
         run: 'false'
