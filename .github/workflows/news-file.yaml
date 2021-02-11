@@ -9,7 +9,9 @@ jobs:
       - run: sudo apt-get install -y patchutils curl grep jq
       - name: Check if PR contains a news fragment or has trivial label
         run: |
+          echo '::group::Event data'
           jq . "$GITHUB_EVENT_PATH"
+          ::endgroup::
           if jq --exit-status '.pull_request.labels | any(.[].name; . == "trivial")' "$GITHUB_EVENT_PATH"; then
             echo TRIVIAL LABEL
           else
@@ -19,7 +21,7 @@ jobs:
             if curl -L "$DIFF_URL" | lsdiff | grep -E "$NEWS_FRAGMENT_RE"; then
               echo NEWS FRAGMENT
             else
-              echo "::error::Missing news fragment or trivial label"
+              echo '::error::Missing news fragment or trivial label'
               false
             fi
           fi
