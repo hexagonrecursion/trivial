@@ -12,7 +12,7 @@ jobs:
           echo '::group::Event payload'
             jq . "$GITHUB_EVENT_PATH"
           echo '::endgroup::'
-          if jq --exit-status '.pull_request.labels | any(.[].name; . == "trivial")' "$GITHUB_EVENT_PATH"; then
+          if jq --exit-status '.pull_request.labels | any(.[].name; . == "trivial")' "$GITHUB_EVENT_PATH" > /dev/null; then
             echo TRIVIAL LABEL
           else
             DIFF_URL="$(jq '.pull_request.diff_url' "$GITHUB_EVENT_PATH")"
