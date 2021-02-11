@@ -30,5 +30,7 @@ jobs:
             else
               # echo '::error::Missing news fragment or trivial label'
               echo MISSING
+              STATUS='{"state": "failure", "target_url": "https://pip.pypa.io/en/latest/development/contributing/#news-entries"}'
+              curl -X POST -H 'Accept: application/vnd.github.v3+json' "$STATUSES_URL" -d "$STATUS"
             fi
           fi
