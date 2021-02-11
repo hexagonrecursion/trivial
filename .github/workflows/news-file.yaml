@@ -12,6 +12,6 @@ jobs:
         env:
           DIFF_URL: ${{ github.event.pull_request.diff_url }}
         run: |
-          printf '%s\n' "$DIFF_URL"
+          curl "$DIFF_URL" | lsdiff
           echo "::error::Missing trivial label"
           false
