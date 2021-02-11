@@ -6,7 +6,8 @@ jobs:
   pr:
     runs-on: ubuntu-20.04
     steps:
-      - run: sudo apt-get install -y curl grep jq
+      - name: Install dependencies
+        run: sudo apt-get install -y curl grep jq
       - name: Check if PR contains a news fragment or has trivial label
         run: |
           set -euo pipefail
