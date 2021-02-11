@@ -16,7 +16,7 @@ jobs:
           if jq --exit-status '.pull_request.labels | any(.[].name; . == "trivial")' "$GITHUB_EVENT_PATH" > /dev/null; then
             echo TRIVIAL LABEL
           else
-            DIFF_URL="$(jq '.pull_request.diff_url' "$GITHUB_EVENT_PATH")"
+            DIFF_URL="$(jq --raw-output '.pull_request.diff_url' "$GITHUB_EVENT_PATH")"
             NEWS_FRAGMENT_RE='news/[^\./]+\.(process|removal|feature|bugfix|doc|vendor|trivial)\.rst$'
             printf '.pull_request.diff_url: %s\n' "$DIFF_URL"
             if curl -L "$DIFF_URL" | lsdiff | grep -E "$NEWS_FRAGMENT_RE"; then
