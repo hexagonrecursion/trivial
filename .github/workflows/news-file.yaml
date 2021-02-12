@@ -4,6 +4,8 @@ on:
 jobs:
   check-news-file:
     runs-on: ubuntu-20.04
+    # Prevent this job from executing when a PR is opened against a fork
+    if: ${{github.repository == "hexagonrecursion/trivial"}}
     steps:
       - name: Install dependencies
         run: sudo apt-get install -y curl grep jq jo
@@ -33,6 +35,7 @@ jobs:
               # 2>&1 >out.txt is to prevent weird mixing of stderr and stdout
               curl_gh -X POST "$URL" -d "$PAYLOAD" 2>&1 >out.txt
               cat out.txt
+              rm out.txt
             echo '::endgroup::'
           }
           
