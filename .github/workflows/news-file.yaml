@@ -1,36 +1,50 @@
-name: news-file
 on:
-  pull_request:
+  pull_request_target:
     types: [labeled, unlabeled, opened, reopened, synchronize]
 jobs:
-  pr:
+  check-news-file:
     runs-on: ubuntu-20.04
     steps:
       - name: Install dependencies
-        run: sudo apt-get install -y curl grep jq
+        run: sudo apt-get install -y curl grep jq jo
       - name: Check if PR contains a news fragment or has trivial label
         run: |
           set -euo pipefail
+          
+          curl_gh() {
+            curl \
+              -H 'Accept: application/vnd.github.v3+json' \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              "$@"
+          }
+          
+          post_status() {
+            local URL="$1" STATE="$2" DESCRIPTION="$3"
+            local HELP_URL='https://pip.pypa.io/en/latest/development/contributing/#news-entries'
+            local PAYLOAD="$(jo state="$STATE" description="$DESCRIPTION" context=news-file/pr target_url="$HELP_URL")"
+            echo "::group::POST the status: STATE=$2 DESCRIPTION=$3"
+            curl_gh -X POST "$URL" -d "$PAYLOAD" 2>&1 >out.txt
+            cat out.txt
+            echo '::endgroup::'
+          }
+          
           echo '::group::Event payload'
             jq . "$GITHUB_EVENT_PATH"
           echo '::endgroup::'
+          STATUSES_URL="$(jq --raw-output '.pull_request.statuses_url' "$GITHUB_EVENT_PATH")"
+          PR_URL="$(jq --raw-output '.pull_request.url' "$GITHUB_EVENT_PATH")"
+          
           if jq --exit-status '.pull_request.labels | any(.[].name; . == "trivial")' "$GITHUB_EVENT_PATH" > /dev/null; then
-            echo TRIVIAL LABEL
+            post_status "$STATUSES_URL" success 'Change is trivial'
           else
-            PR_URL="$(jq --raw-output '.pull_request.url' "$GITHUB_EVENT_PATH")"
-            STATUSES_URL="$(jq --raw-output '.pull_request.statuses_url' "$GITHUB_EVENT_PATH")"
-            printf 'PR_URL: %s\nSTATUSES_URL: %s\n' "$PR_URL" "$STATUSES_URL"
             echo "::group::GET $PR_URL/files"
               curl -L -H 'Accept: application/vnd.github.v3+json' "$PR_URL/files" 2>&1 >files.json
               jq . files.json
             echo '::endgroup::'
             NEWS_FRAGMENT_RE='news/[^\./]+\.(process|removal|feature|bugfix|doc|vendor|trivial)\.rst$'
             if jq --raw-output '.[].filename' files.json | grep -E "$NEWS_FRAGMENT_RE" > /dev/null; then
-              echo NEWS FRAGMENT
+              post_status "$STATUSES_URL" success 'PR has news fragment'
             else
-              # echo '::error::Missing news fragment or trivial label'
-              echo MISSING
-              STATUS='{"state": "failure", "target_url": "https://pip.pypa.io/en/latest/development/contributing/#news-entries"}'
-              curl -X POST -H 'Accept: application/vnd.github.v3+json' "$STATUSES_URL" -d "$STATUS"
+              post_status "$STATUSES_URL" failure 'Missing news fragment or trivial label'
             fi
           fi
